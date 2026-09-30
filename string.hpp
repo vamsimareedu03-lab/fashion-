@@ -1,31 +1,43 @@
-#ifndef OPENPOSE_UTILITIES_STRING_HPP
-#define OPENPOSE_UTILITIES_STRING_HPP
+#ifndef OPENPOSE_CORE_STRING_HPP
+#define OPENPOSE_CORE_STRING_HPP
 
-#include <openpose/core/common.hpp>
+#include <memory> // std::shared_ptr
+#include <string>
+#include <openpose/core/macros.hpp>
 
 namespace op
 {
-    OP_API unsigned long long getLastNumber(const std::string& string);
-
     /**
-     * This template function turns an integer number into a fixed-length std::string.
-     * @param number T integer corresponding to the integer to be formatted.
-     * @param stringLength unsigned long long indicating the final length. If 0, the
-     * final length is the original number length.
-     * @return std::string with the formatted value.
+     * String: Basic container for std::string to avoid std::string in the WrapperStructXXX classes. Otherwise,
+     * cryptic runtime DLL errors could occur when exporting OpenPose to other projects using different STL DLLs.
      */
-    template<typename T>
-    std::string toFixedLengthString(const T number, const unsigned long long stringLength = 0);
+    class OP_API String
+    {
+    public:
+        String();
 
-    OP_API std::vector<std::string> splitString(const std::string& stringToSplit, const std::string& delimiter);
+        /**
+         * It will force a copy of the char* of std::string to avoid DLL runtime errors. Example usages:
+         * std::string stdString = "This is a std::string"; 
+         * String string(stdString.c_str()); 
+         */
+        String(const char* charPtr);
 
-    OP_API std::string toLower(const std::string& string);
+        /**
+         * It will force a copy of string
+         */
+        explicit String(const std::string& string);
 
-    OP_API std::string toUpper(const std::string& string);
+        const std::string& getStdString() const;
 
-    OP_API std::string remove0sFromString(const std::string& string);
+        bool empty() const;
 
-    OP_API std::string getFirstNumberOnString(const std::string& string);
+    private:
+        // PIMPL idiom
+        // http://www.cppsamples.com/common-tasks/pimpl.html
+        struct ImplString;
+        std::shared_ptr<ImplString> spImpl;
+    };
 }
 
-#endif // OPENPOSE_UTILITIES_STRING_HPP
+#endif // OPENPOSE_CORE_STRING_HPP
