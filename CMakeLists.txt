@@ -1,19 +1,28 @@
-set(SOURCES_OP_UNITY
-    unityBinding.cpp
-)
+set(SOURCES_OP_UTILITIES
+    errorAndLog.cpp
+    fileSystem.cpp
+    flagsToOpenPose.cpp
+    keypoint.cpp
+    openCv.cpp
+    openCvPrivate.cpp
+    profiler.cpp
+    string.cpp)
 
 include(${CMAKE_SOURCE_DIR}/cmake/Utils.cmake)
-set(SOURCES_OP_UNITY_WITH_CP "" PARENT_SCOPE)
-prepend(SOURCES_OP_UNITY_WITH_CP ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_OP_UNITY})
-set(SOURCES_OP_UNITY_WITH_CP ${SOURCES_OP_UNITY_WITH_CP} PARENT_SCOPE)
-set(SOURCES_OP_FILESTREAM_WITH_CP ${SOURCES_OP_FILESTREAM_WITH_CP} PARENT_SCOPE)
-set(SOURCES_OPENPOSE ${SOURCES_OPENPOSE} ${SOURCES_OP_UNITY_WITH_CP} PARENT_SCOPE)
+prepend(SOURCES_OP_UTILITIES_WITH_CP ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_OP_UTILITIES})
+set(SOURCES_OP_UTILITIES_WITH_CP ${SOURCES_OP_UTILITIES_WITH_CP} PARENT_SCOPE)
+set(SOURCES_OPENPOSE ${SOURCES_OPENPOSE} ${SOURCES_OP_UTILITIES_WITH_CP} PARENT_SCOPE)
 
 if (UNIX OR APPLE)
-  add_library(openpose_unity ${SOURCES_OP_UNITY})
-  target_link_libraries(openpose_unity openpose_pose ${OpenPose_3rdparty_libraries})
+  if (${GPU_MODE} MATCHES "CUDA")
+    cuda_add_library(openpose_utilities ${SOURCES_OP_UTILITIES})
+  else ()
+    add_library(openpose_utilities ${SOURCES_OP_UTILITIES})
+  endif ()
 
-  install(TARGETS openpose_unity
+  target_link_libraries(openpose_utilities openpose_producer openpose_filestream)
+
+  install(TARGETS openpose_utilities
       EXPORT OpenPose
       RUNTIME DESTINATION bin
       LIBRARY DESTINATION lib
